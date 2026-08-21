@@ -1,0 +1,143 @@
+-- MeowHUB 3.0 UI Style with Fluent-Modded & Revertible Anti-Lag Booster
+local Fluent = loadstring(game:HttpGet("https://github.com/StyearX/Fluent-Modded/releases/download/Fluent/FluentPro"))()
+
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
+local LocalPlayer = Players.LocalPlayer
+
+local Window = Fluent:CreateWindow({
+    Title = "FPS Booster",
+    SubTitle = "presents by CatTBD",
+    TabWidth = 135,
+    Size = UDim2.fromOffset(450, 340),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl
+})
+
+-- Apply custom MeowHUB color palette
+Fluent.ColorTheme = {
+    Main = Color3.fromRGB(28, 20, 25),
+    Accent = Color3.fromRGB(255, 105, 180),
+    Outline = Color3.fromRGB(120, 10, 60),
+}
+
+-- Only add AvatarPage
+local Tabs = {
+    Avatar = Window:AddTab({ Title = "Avatar", Icon = "user" })
+}
+
+Tabs.Avatar:AddSection("Performance Options")
+
+local FPSBoosterEnabled = false
+local storedProperties = {}
+local antiLagConnection = nil
+
+Tabs.Avatar:AddToggle("AntiLagBooster", {
+    Title = "Anti-Lag / Booster",
+    Description = "Turns on high-performance boost to stabilize FPS. Reverts completely when turned off.",
+    Default = false,
+    Callback = function(Value)
+        FPSBoosterEnabled = Value
+        
+        if FPSBoosterEnabled then
+            -- Booster ON: Optimize visuals and store original properties
+            pcall(function()
+                Lighting.GlobalShadows = false
+                Lighting.Brightness = 2
+                Lighting.FogEnd = 999999
+            end)
+            
+            local function optimizePart(obj)
+                if obj:IsA("Decal") or obj:IsA("Texture") or obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") or obj:IsA("Fire") or obj:IsA("Smoke") or obj:IsA("Sparkles") then
+                    if storedProperties[obj] == nil then
+                        storedProperties[obj] = obj.Transparency
+                    end
+                    obj.Transparency = 1
+                elseif obj:IsA("SpecialMesh") then
+                    if storedProperties[obj] == nil then
+                        storedProperties[obj] = obj.TextureId
+                    end
+                    obj.TextureId = ""
+                elseif obj:IsA("MeshPart") then
+                    if storedProperties[obj] == nil then
+                        storedProperties[obj] = obj.TextureID
+                    end
+                    obj.TextureID = ""
+                elseif obj:IsA("BasePart") then
+                    if storedProperties[obj] == nil then
+                        storedProperties[obj] = {Material = obj.Material, Reflectance = obj.Reflectance}
+                    end
+                    obj.Material = Enum.Material.SmoothPlastic
+                    obj.Reflectance = 0
+                end
+            end
+
+            for _, obj in ipairs(Workspace:GetDescendants()) do
+                optimizePart(obj)
+            end
+
+            -- Continuous cleaner for newly spawned elements
+            antiLagConnection = Workspace.DescendantAdded:Connect(function(obj)
+                task.spawn(function()
+                    optimizePart(obj)
+                end)
+            end)
+
+            storedProperties["Ambient"] = Lighting.Ambient
+            Lighting.Ambient = Color3.fromRGB(120, 120, 120)
+
+            Fluent:Notify({
+                Title = "FPS Booster",
+                Content = "Anti-Lag is now [ON]. Performance optimized!",
+                Duration = 3
+            })
+        else
+            -- Booster OFF: Disconnect loop and restore everything back to normal
+            if antiLagConnection then
+                antiLagConnection:Disconnect()
+                antiLagConnection = nil
+            end
+
+            pcall(function()
+                Lighting.GlobalShadows = true
+            end)
+
+            for obj, prop in pairs(storedProperties) do
+                if typeof(obj) == "Instance" and obj.Parent then
+                    if obj:IsA("Decal") or obj:IsA("Texture") or obj:IsA("ParticleEmitter") or obj:IsA("Trail") or obj:IsA("Beam") or obj:IsA("Fire") or obj:IsA("Smoke") or obj:IsA("Sparkles") then
+                        obj.Transparency = prop
+                    elseif obj:IsA("SpecialMesh") then
+                        obj.TextureId = prop
+                    elseif obj:IsA("MeshPart") then
+                        obj.TextureID = prop
+                    elseif obj:IsA("BasePart") and typeof(prop) == "table" then
+                        obj.Material = prop.Material
+                        obj.Reflectance = prop.Reflectance
+                    end
+                end
+            end
+
+            if storedProperties["Ambient"] then
+                Lighting.Ambient = storedProperties["Ambient"]
+            end
+            
+            storedProperties = {}
+
+            Fluent:Notify({
+                Title = "FPS Booster",
+                Content = "Anti-Lag is now [OFF]. Restored to normal.",
+                Duration = 3
+            })
+        end
+    end
+})
+
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = "FPS Booster Loaded",
+    Content = "presents by CatTBD",
+    Duration = 4
+})
