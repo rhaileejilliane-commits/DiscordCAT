@@ -1,0 +1,278 @@
+-- Cat-Spelling (Spelling Bee Hub)
+-- Presented by CatTBD
+
+-- Advanced Environment Hardening & Anti-Kick Protection
+pcall(function()
+    local oldNamecall
+    oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+        local method = getnamecallmethod()
+        if (method == "Kick" or method == "kick") and self == game.Players.LocalPlayer then
+            return nil
+        end
+        return oldNamecall(self, ...)
+    end)
+end)
+
+pcall(function()
+    local Players = game:GetService("Players")
+    local LocalPlayer = Players.LocalPlayer
+    if LocalPlayer then
+        LocalPlayer.OnTeleport:Connect(function(teleportState)
+            if teleportState == Enum.TeleportState.Failed then
+            end
+        end)
+    end
+end)
+
+local Fluent = loadstring(game:HttpGet("https://github.com/StyearX/Fluent-Modded/releases/download/Fluent/FluentPro"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/SaveManager.lua"))()
+local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/dawid-scripts/Fluent/master/Addons/InterfaceManager.lua"))()
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Camera = Workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+local Window = Fluent:CreateWindow({
+    Title = "Cat-Spelling",
+    SubTitle = "present by CatTBD",
+    TabWidth = 135,
+    Size = UDim2.fromOffset(500, 380),
+    Acrylic = true,
+    Theme = "Dark",
+    MinimizeKey = Enum.KeyCode.LeftControl,
+    Search = true,
+})
+
+Fluent.ColorTheme = {
+    Main = Color3.fromRGB(28, 20, 25),
+    Accent = Color3.fromRGB(255, 105, 180),
+    Outline = Color3.fromRGB(120, 10, 60),
+}
+
+local Tabs = {
+    Home = Window:AddTab({ Title = "Home", Icon = "solar/home-bold" }),
+    Combat = Window:AddTab({ Title = "Combat", Icon = "solar/shield-bold" }),
+    Speed = Window:AddTab({ Title = "Speed", Icon = "solar/bolt-bold" }),
+    Visual = Window:AddTab({ Title = "Visual", Icon = "solar/eye-bold" }),
+    Settings = Window:AddTab({ Title = "Settings", Icon = "solar/settings-bold" })
+}
+
+local Options = Fluent.Options
+
+-- Format Join Date safely
+local joinDateString = "Unknown"
+pcall(function()
+    local days = LocalPlayer.AccountAge
+    local realUnix = os.time() - (days * 86400)
+    joinDateString = os.date("%Y-%m-%d", realUnix)
+end)
+
+-- Home Tab Elements
+Tabs.Home:AddSection("Player Profile")
+
+Tabs.Home:AddParagraph({
+    Title = "Welcome, " .. LocalPlayer.DisplayName .. "!",
+    Content = "Username: @" .. LocalPlayer.Name .. "\nUser ID: " .. LocalPlayer.UserId .. "\nJoin Date: " .. joinDateString .. "\nAccount Age: " .. LocalPlayer.AccountAge .. " days"
+})
+
+Tabs.Home:AddSection("Community")
+
+Tabs.Home:AddButton({
+    Title = "Copy Discord Link",
+    Description = "Join our community server!",
+    Callback = function()
+        pcall(function()
+            setclipboard("https://discord.gg/MRWAcHUg4")
+        end)
+        Fluent:Notify({
+            Title = "Discord Link",
+            Content = "Successfully copied to clipboard: https://discord.gg/MRWAcHUg4",
+            Duration = 5
+        })
+    end
+})
+
+-- Shared State for Spelling Bee functionality
+local CurrentTargetWord = ""
+local AutoAnswerEnabled = false
+local TypingSpeedDelay = 0.05 -- Default Normal speed
+
+-- Combat Tab Elements (Spelling Bee Auto Answer Toggle)
+Tabs.Combat:AddSection("Spelling Bee Automation")
+
+Tabs.Combat:AddToggle("AutoAnswerToggle", {
+    Title = "Outo Answer",
+    Description = "Automatically spells the word when it is your turn",
+    Default = false,
+    Callback = function(Value)
+        AutoAnswerEnabled = Value
+    end
+})
+
+-- Speed Tab Elements (Typing Speed Control with 4 distinct speed states)
+Tabs.Speed:AddSection("Typing Configuration")
+
+Tabs.Speed:AddDropdown("TypingSpeedDropdown", {
+    Title = "Outo Answer Speed",
+    Description = "Select how fast the characters are typed",
+    Values = {"1. Very fast", "2. Fast", "3. Normal", "4. Slow Typing"},
+    Default = "3. Normal",
+    Callback = function(Value)
+        if Value:find("Very fast") then
+            TypingSpeedDelay = 0.001
+        elseif Value:find("Fast") then
+            TypingSpeedDelay = 0.015
+        elseif Value:find("Normal") then
+            TypingSpeedDelay = 0.05
+        elseif Value:find("Slow") then
+            TypingSpeedDelay = 0.15
+        end
+    end
+})
+
+-- Visual Tab Elements (Reveal & Copy/Paste Spelling Answer)
+Tabs.Visual:AddSection("Spelling Bee Helper")
+
+local SpellingWordParagraph = Tabs.Visual:AddParagraph({
+    Title = "Current Active Word",
+    Content = "Waiting for audio prompt or round start..."
+})
+
+Tabs.Visual:AddButton({
+    Title = "Copy Word to Clipboard",
+    Description = "Click to copy the revealed spelling answer instantly",
+    Callback = function()
+        if CurrentTargetWord ~= "" and CurrentTargetWord ~= "None" then
+            pcall(function()
+                setclipboard(CurrentTargetWord)
+            end)
+            Fluent:Notify({
+                Title = "Spelling Copied",
+                Content = "Successfully copied: " .. CurrentTargetWord,
+                Duration = 3
+            })
+        else
+            Fluent:Notify({
+                Title = "Warning",
+                Content = "No active word available to copy right now!",
+                Duration = 3
+            })
+        end
+    end
+})
+
+-- Function to handle automated typing into the game textbox
+local function simulateTyping(word)
+    if not word or word == "" then return end
+    pcall(function()
+        for _, gui in ipairs(LocalPlayer.PlayerGui:GetDescendants()) do
+            if gui:IsA("TextBox") and gui.Visible and gui.Active then
+                gui.Text = ""
+                task.wait(0.05)
+                for i = 1, #word do
+                    if not AutoAnswerEnabled then break end
+                    gui.Text = string.sub(word, 1, i)
+                    task.wait(TypingSpeedDelay)
+                end
+                break
+            end
+        end
+    end)
+end
+
+-- Hook into Network / Client Events for word capture
+task.spawn(function()
+    pcall(function()
+        for _, obj in ipairs(ReplicatedStorage:GetDescendants()) do
+            if obj:IsA("RemoteEvent") or obj:IsA("UnreliableRemoteEvent") then
+                obj.OnClientEvent:Connect(function(...)
+                    local args = {...}
+                    for _, arg in ipairs(args) do
+                        if type(arg) == "string" and #arg >= 2 and #arg <= 35 then
+                            if arg:match("^[%a]+$") then
+                                CurrentTargetWord = arg
+                                SpellingWordParagraph:SetTitle("Current Active Word")
+                                SpellingWordParagraph:SetDesc("Revealed Answer: " .. CurrentTargetWord)
+                                
+                                if AutoAnswerEnabled then
+                                    task.spawn(function()
+                                        task.wait(0.1)
+                                        simulateTyping(CurrentTargetWord)
+                                    end)
+                                end
+                            end
+                        end
+                    end
+                end)
+            end
+        end
+    end)
+end)
+
+-- UI Text Monitor Fallback Engine
+task.spawn(function()
+    while true do
+        pcall(function()
+            for _, gui in ipairs(LocalPlayer.PlayerGui:GetDescendants()) do
+                if gui:IsA("TextLabel") and gui.Visible then
+                    local text = gui.Text
+                    if text:lower():find("word:") or text:lower():find("spell:") or text:lower():find("answer:") then
+                        local parts = text:split(":")
+                        if parts[2] then
+                            local cleanWord = parts[2]:gsub("%s+", "")
+                            if cleanWord ~= "" and cleanWord ~= CurrentTargetWord and #cleanWord > 1 then
+                                CurrentTargetWord = cleanWord
+                                SpellingWordParagraph:SetTitle("Current Active Word")
+                                SpellingWordParagraph:SetDesc("Revealed Answer: " .. CurrentTargetWord)
+                                
+                                if AutoAnswerEnabled then
+                                    task.spawn(function()
+                                        task.wait(0.1)
+                                        simulateTyping(CurrentTargetWord)
+                                    end)
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+        task.wait(0.3)
+    end
+end)
+
+-- Settings Tab Elements (Credits: CatTBD, RandomXU, Nutural only)
+Tabs.Settings:AddSection("Credits")
+
+Tabs.Settings:AddParagraph({
+    Title = "Development Team",
+    Content = "CatTBD\nRandomXU\nNutural"
+})
+
+-- Configuration Managers Setup
+SaveManager:SetLibrary(Fluent)
+InterfaceManager:SetLibrary(Fluent)
+
+SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({})
+
+InterfaceManager:SetFolder("CatSpelling")
+SaveManager:SetFolder("CatSpelling/settings")
+
+InterfaceManager:BuildInterfaceSection(Tabs.Settings)
+SaveManager:BuildConfigSection(Tabs.Settings)
+
+Window:SelectTab(1)
+
+Fluent:Notify({
+    Title = "Cat-Spelling",
+    Content = "Presented by CatTBD loaded successfully!",
+    Duration = 5
+})
+
+SaveManager:LoadAutoloadConfig()
