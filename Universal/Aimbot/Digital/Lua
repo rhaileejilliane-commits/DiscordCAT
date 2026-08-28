@@ -1,0 +1,769 @@
+-- Place this LocalScript inside StarterPlayerScripts or StarterGui
+
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+
+local player = Players.LocalPlayer
+local camera = workspace.CurrentCamera
+
+-- Create ScreenGui with high DisplayOrder
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "RetroSystemMessageGui"
+screenGui.ResetOnSpawn = false
+screenGui.DisplayOrder = 999999
+
+local success, err = pcall(function()
+	screenGui.Parent = CoreGui
+end)
+if not success then
+	screenGui.Parent = player:WaitForChild("PlayerGui")
+end
+
+-- Loading Intro Window (Old Computer Window Loading)
+local loadingFrame = Instance.new("Frame")
+loadingFrame.Name = "LoadingFrame"
+loadingFrame.Size = UDim2.new(0, 320, 0, 130)
+loadingFrame.Position = UDim2.new(0.5, -160, 0.5, -65)
+loadingFrame.BackgroundColor3 = Color3.fromRGB(192, 192, 192)
+loadingFrame.BorderSizePixel = 0
+loadingFrame.ZIndex = 50
+loadingFrame.Parent = screenGui
+
+local loadHighlightTop = Instance.new("Frame") loadHighlightTop.Size = UDim2.new(1, 0, 0, 1) loadHighlightTop.BackgroundColor3 = Color3.fromRGB(255, 255, 255) loadHighlightTop.BorderSizePixel = 0 loadHighlightTop.ZIndex = 51 loadHighlightTop.Parent = loadingFrame
+local loadHighlightLeft = Instance.new("Frame") loadHighlightLeft.Size = UDim2.new(0, 1, 1, 0) loadHighlightLeft.BackgroundColor3 = Color3.fromRGB(255, 255, 255) loadHighlightLeft.BorderSizePixel = 0 loadHighlightLeft.ZIndex = 51 loadHighlightLeft.Parent = loadingFrame
+local loadShadowBottom = Instance.new("Frame") loadShadowBottom.Size = UDim2.new(1, 0, 0, 1) loadShadowBottom.Position = UDim2.new(0, 0, 1, -1) loadShadowBottom.BackgroundColor3 = Color3.fromRGB(128, 128, 128) loadShadowBottom.BorderSizePixel = 0 loadShadowBottom.ZIndex = 51 loadShadowBottom.Parent = loadingFrame
+local loadShadowRight = Instance.new("Frame") loadShadowRight.Size = UDim2.new(0, 1, 1, 0) loadShadowRight.Position = UDim2.new(1, -1, 0, 0) loadShadowRight.BackgroundColor3 = Color3.fromRGB(128, 128, 128) loadShadowRight.BorderSizePixel = 0 loadShadowRight.ZIndex = 51 loadShadowRight.Parent = loadingFrame
+
+local loadTitleBar = Instance.new("Frame")
+loadTitleBar.Size = UDim2.new(1, -6, 0, 24)
+loadTitleBar.Position = UDim2.new(0, 3, 0, 3)
+loadTitleBar.BackgroundColor3 = Color3.fromRGB(0, 0, 128)
+loadTitleBar.BorderSizePixel = 0
+loadTitleBar.ZIndex = 52
+loadTitleBar.Parent = loadingFrame
+
+local loadTitleText = Instance.new("TextLabel")
+loadTitleText.Size = UDim2.new(1, -10, 1, 0)
+loadTitleText.Position = UDim2.new(0, 6, 0, 0)
+loadTitleText.BackgroundTransparency = 1
+loadTitleText.Font = Enum.Font.Arcade
+loadTitleText.Text = " DIGITALˢᶜʳᶦᵖᵗˢ - Initializing"
+loadTitleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+loadTitleText.TextSize = 12
+loadTitleText.TextXAlignment = Enum.TextXAlignment.Left
+loadTitleText.ZIndex = 53
+loadTitleText.Parent = loadTitleBar
+
+local loadContent = Instance.new("TextLabel")
+loadContent.Size = UDim2.new(1, -20, 0, 40)
+loadContent.Position = UDim2.new(0, 10, 0, 38)
+loadContent.BackgroundTransparency = 1
+loadContent.Font = Enum.Font.Arcade
+loadContent.Text = "Starting system services..."
+loadContent.TextColor3 = Color3.fromRGB(0, 0, 0)
+loadContent.TextSize = 13
+loadContent.TextXAlignment = Enum.TextXAlignment.Left
+loadContent.ZIndex = 52
+loadContent.Parent = loadingFrame
+
+-- Progress Bar Container
+local barOuter = Instance.new("Frame")
+barOuter.Size = UDim2.new(1, -20, 0, 18)
+barOuter.Position = UDim2.new(0, 10, 0, 85)
+barOuter.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+barOuter.BorderSizePixel = 0
+barOuter.ZIndex = 52
+barOuter.Parent = loadingFrame
+
+local bTop = Instance.new("Frame") bTop.Size = UDim2.new(1,0,0,1) bTop.BackgroundColor3 = Color3.fromRGB(128,128,128) bTop.BorderSizePixel=0 bTop.ZIndex=53 bTop.Parent=barOuter
+local bLeft = Instance.new("Frame") bLeft.Size = UDim2.new(0,1,1,0) bLeft.BackgroundColor3 = Color3.fromRGB(128,128,128) bLeft.BorderSizePixel=0 bLeft.ZIndex=53 bLeft.Parent=barOuter
+local bBot = Instance.new("Frame") bBot.Size = UDim2.new(1,0,0,1) bBot.Position = UDim2.new(0,0,1,-1) bBot.BackgroundColor3 = Color3.fromRGB(255,255,255) bBot.BorderSizePixel=0 bBot.ZIndex=53 bBot.Parent=barOuter
+local bRight = Instance.new("Frame") bRight.Size = UDim2.new(0,1,1,0) bRight.Position = UDim2.new(1,-1,0,0) bRight.BackgroundColor3 = Color3.fromRGB(255,255,255) bRight.BorderSizePixel=0 bRight.ZIndex=53 bRight.Parent=barOuter
+
+local barInner = Instance.new("Frame")
+barInner.Size = UDim2.new(0, 0, 1, -6)
+barInner.Position = UDim2.new(0, 3, 0, 3)
+barInner.BackgroundColor3 = Color3.fromRGB(0, 0, 128)
+barInner.BorderSizePixel = 0
+barInner.ZIndex = 53
+barInner.Parent = barOuter
+
+-- Main Frame (Expanded height to fit ESP toggles)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "WindowFrame"
+mainFrame.Size = UDim2.new(0, 380, 0, 420)
+mainFrame.Position = UDim2.new(0.5, -190, 0.5, -210)
+mainFrame.BackgroundColor3 = Color3.fromRGB(192, 192, 192)
+mainFrame.BorderSizePixel = 0
+mainFrame.ZIndex = 10
+mainFrame.Visible = false
+mainFrame.Parent = screenGui
+
+-- Background Image added to the Big UI Frame
+local bgImage = Instance.new("ImageLabel")
+bgImage.Name = "BackgroundImage"
+bgImage.Size = UDim2.new(1, -6, 1, -32)
+bgImage.Position = UDim2.new(0, 3, 0, 29)
+bgImage.BackgroundTransparency = 1
+bgImage.Image = "rbxassetid://1000026129"
+bgImage.ImageTransparency = 0.85
+bgImage.ScaleType = Enum.ScaleType.Fit
+bgImage.ZIndex = 11
+bgImage.Parent = mainFrame
+
+-- Win95 Bevel: Top & Left White highlight
+local frameHighlightTop = Instance.new("Frame")
+frameHighlightTop.Size = UDim2.new(1, 0, 0, 1)
+frameHighlightTop.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+frameHighlightTop.BorderSizePixel = 0
+frameHighlightTop.ZIndex = 12
+frameHighlightTop.Parent = mainFrame
+
+local frameHighlightLeft = Instance.new("Frame")
+frameHighlightLeft.Size = UDim2.new(0, 1, 1, 0)
+frameHighlightLeft.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+frameHighlightLeft.BorderSizePixel = 0
+frameHighlightLeft.ZIndex = 12
+frameHighlightLeft.Parent = mainFrame
+
+-- Win95 Bevel: Bottom & Right Dark Grey shadow
+local frameShadowBottom = Instance.new("Frame")
+frameShadowBottom.Size = UDim2.new(1, 0, 0, 1)
+frameShadowBottom.Position = UDim2.new(0, 0, 1, -1)
+frameShadowBottom.BackgroundColor3 = Color3.fromRGB(128, 128, 128)
+frameShadowBottom.BorderSizePixel = 0
+frameShadowBottom.ZIndex = 12
+frameShadowBottom.Parent = mainFrame
+
+local frameShadowRight = Instance.new("Frame")
+frameShadowRight.Size = UDim2.new(0, 1, 1, 0)
+frameShadowRight.Position = UDim2.new(1, -1, 0, 0)
+frameShadowRight.BackgroundColor3 = Color3.fromRGB(128, 128, 128)
+frameShadowRight.BorderSizePixel = 0
+frameShadowRight.ZIndex = 12
+frameShadowRight.Parent = mainFrame
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 0)
+mainCorner.Parent = mainFrame
+
+-- Title Bar (Movable Handle)
+local titleBar = Instance.new("TextButton")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, -6, 0, 24)
+titleBar.Position = UDim2.new(0, 3, 0, 3)
+titleBar.BackgroundColor3 = Color3.fromRGB(0, 0, 128)
+titleBar.BorderSizePixel = 0
+titleBar.AutoButtonColor = false
+titleBar.Text = ""
+titleBar.ZIndex = 20
+titleBar.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 0)
+titleCorner.Parent = titleBar
+
+local titleText = Instance.new("TextLabel")
+titleText.Size = UDim2.new(1, -35, 1, 0)
+titleText.Position = UDim2.new(0, 6, 0, 0)
+titleText.BackgroundTransparency = 1
+titleText.Font = Enum.Font.Arcade
+titleText.Text = " DIGITALˢᶜʳᶦᵖᵗˢ"
+titleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleText.TextSize = 12
+titleText.TextXAlignment = Enum.TextXAlignment.Left
+titleText.ZIndex = 21
+titleText.Parent = titleBar
+
+-- Retro Win95 Style Close Button
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 18, 0, 16)
+closeButton.Position = UDim2.new(1, -20, 0, 4)
+closeButton.BackgroundColor3 = Color3.fromRGB(192, 192, 192)
+closeButton.BorderSizePixel = 0
+closeButton.Font = Enum.Font.Arcade
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+closeButton.TextSize = 11
+closeButton.ZIndex = 22
+closeButton.Parent = titleBar
+
+local btnTopBorder = Instance.new("Frame") btnTopBorder.Size = UDim2.new(1, 0, 0, 1) btnTopBorder.BackgroundColor3 = Color3.fromRGB(255, 255, 255) btnTopBorder.BorderSizePixel = 0 btnTopBorder.ZIndex = 23 btnTopBorder.Parent = closeButton
+local btnLeftBorder = Instance.new("Frame") btnLeftBorder.Size = UDim2.new(0, 1, 1, 0) btnLeftBorder.BackgroundColor3 = Color3.fromRGB(255, 255, 255) btnLeftBorder.BorderSizePixel = 0 btnLeftBorder.ZIndex = 23 btnLeftBorder.Parent = closeButton
+local btnBottomBorder = Instance.new("Frame") btnBottomBorder.Size = UDim2.new(1, 0, 0, 1) btnBottomBorder.Position = UDim2.new(0, 0, 1, -1) btnBottomBorder.BackgroundColor3 = Color3.fromRGB(128, 128, 128) btnBottomBorder.BorderSizePixel = 0 btnBottomBorder.ZIndex = 23 btnBottomBorder.Parent = closeButton
+local btnRightBorder = Instance.new("Frame") btnRightBorder.Size = UDim2.new(0, 1, 1, 0) btnRightBorder.Position = UDim2.new(1, -1, 0, 0) btnRightBorder.BackgroundColor3 = Color3.fromRGB(128, 128, 128) btnRightBorder.BorderSizePixel = 0 btnRightBorder.ZIndex = 23 btnRightBorder.Parent = closeButton
+
+-- Scrolling Frame Container for Up-to-Down Slidable Content
+local scrollingFrame = Instance.new("ScrollingFrame")
+scrollingFrame.Size = UDim2.new(1, -20, 1, -45)
+scrollingFrame.Position = UDim2.new(0, 10, 0, 32)
+scrollingFrame.BackgroundTransparency = 1
+scrollingFrame.BorderSizePixel = 0
+scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 340)
+scrollingFrame.ScrollBarThickness = 8
+scrollingFrame.ScrollingDirection = Enum.ScrollingDirection.Y
+scrollingFrame.ZIndex = 15
+scrollingFrame.Parent = mainFrame
+
+-- Helper function to create Win95 style checkboxes inside ScrollingFrame
+local function createToggle(name, yPos, defaultState)
+	local sunkenBg = Instance.new("Frame")
+	sunkenBg.Size = UDim2.new(1, -12, 0, 26)
+	sunkenBg.Position = UDim2.new(0, 0, 0, yPos)
+	sunkenBg.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	sunkenBg.BorderSizePixel = 0
+	sunkenBg.ZIndex = 16
+	sunkenBg.Parent = scrollingFrame
+	
+	local sTop = Instance.new("Frame") sTop.Size = UDim2.new(1,0,0,1) sTop.BackgroundColor3 = Color3.fromRGB(128,128,128) sTop.BorderSizePixel=0 sTop.ZIndex=17 sTop.Parent=sunkenBg
+	local sLeft = Instance.new("Frame") sLeft.Size = UDim2.new(0,1,1,0) sLeft.BackgroundColor3 = Color3.fromRGB(128,128,128) sLeft.BorderSizePixel=0 sLeft.ZIndex=17 sLeft.Parent=sunkenBg
+	local sBot = Instance.new("Frame") sBot.Size = UDim2.new(1,0,0,1) sBot.Position = UDim2.new(0,0,1,-1) sBot.BackgroundColor3 = Color3.fromRGB(255,255,255) sBot.BorderSizePixel=0 sBot.ZIndex=17 sBot.Parent=sunkenBg
+	local sRight = Instance.new("Frame") sRight.Size = UDim2.new(0,1,1,0) sRight.Position = UDim2.new(1,-1,0,0) sRight.BackgroundColor3 = Color3.fromRGB(255,255,255) sRight.BorderSizePixel=0 sRight.ZIndex=17 sRight.Parent=sunkenBg
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.new(1, -35, 1, 0)
+	label.Position = UDim2.new(0, 32, 0, 0)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.Arcade
+	label.Text = name
+	label.TextColor3 = Color3.fromRGB(0, 0, 0)
+	label.TextSize = 13
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.ZIndex = 18
+	label.Parent = sunkenBg
+	
+	local box = Instance.new("TextButton")
+	box.Size = UDim2.new(0, 16, 0, 16)
+	box.Position = UDim2.new(0, 8, 0, 5)
+	box.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	box.BorderSizePixel = 0
+	box.Text = defaultState and "✓" or ""
+	box.Font = Enum.Font.Arcade
+	box.TextColor3 = Color3.fromRGB(0, 0, 0)
+	box.TextSize = 12
+	box.ZIndex = 18
+	box.Parent = sunkenBg
+	
+	local bTop = Instance.new("Frame") bTop.Size = UDim2.new(1,0,0,1) bTop.BackgroundColor3 = Color3.fromRGB(128,128,128) bTop.BorderSizePixel=0 bTop.ZIndex=19 bTop.Parent=box
+	local bLeft = Instance.new("Frame") bLeft.Size = UDim2.new(0,1,1,0) bLeft.BackgroundColor3 = Color3.fromRGB(128,128,128) bLeft.BorderSizePixel=0 bLeft.ZIndex=19 bLeft.Parent=box
+	local bBot = Instance.new("Frame") bBot.Size = UDim2.new(1,0,0,1) bBot.Position = UDim2.new(0,0,1,-1) bBot.BackgroundColor3 = Color3.fromRGB(255,255,255) bBot.BorderSizePixel=0 bBot.ZIndex=19 bBot.Parent=box
+	local bRight = Instance.new("Frame") bRight.Size = UDim2.new(0,1,1,0) bRight.Position = UDim2.new(1,-1,0,0) bRight.BackgroundColor3 = Color3.fromRGB(255,255,255) bRight.BorderSizePixel=0 bRight.ZIndex=19 bRight.Parent=box
+	
+	local state = defaultState
+	sunkenBg.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			state = not state
+			box.Text = state and "✓" or ""
+		end
+	end)
+	
+	box.MouseButton1Click:Connect(function()
+		state = not state
+		box.Text = state and "✓" or ""
+	end)
+	
+	return box, function() return state end
+end
+
+-- UI Controls setup inside ScrollingFrame
+local _, getAimbotState = createToggle("Aimbot FOV", 5, false)
+local _, getWallCheck = createToggle("Wall Check", 38, true)
+local _, getTeamCheck = createToggle("Team Check", 71, true)
+local _, getEspBoxState = createToggle("ESP Box", 104, true)
+local _, getEspTracerState = createToggle("ESP Tracers", 137, true)
+local _, getEspNameState = createToggle("ESP Names", 170, true)
+local _, getEspHealthState = createToggle("ESP Health", 203, true)
+
+-- Mode Button (Switching between Smooth Mode & Snappy/Instant Mode)
+local modeButtonBg = Instance.new("Frame")
+modeButtonBg.Size = UDim2.new(1, -12, 0, 26)
+modeButtonBg.Position = UDim2.new(0, 0, 0, 236)
+modeButtonBg.BackgroundColor3 = Color3.fromRGB(192, 192, 192)
+modeButtonBg.BorderSizePixel = 0
+modeButtonBg.ZIndex = 16
+modeButtonBg.Parent = scrollingFrame
+
+local mbTop = Instance.new("Frame") mbTop.Size = UDim2.new(1,0,0,1) mbTop.BackgroundColor3 = Color3.fromRGB(255,255,255) mbTop.BorderSizePixel=0 mbTop.ZIndex=17 mbTop.Parent=modeButtonBg
+local mbLeft = Instance.new("Frame") mbLeft.Size = UDim2.new(0,1,1,0) mbLeft.BackgroundColor3 = Color3.fromRGB(255,255,255) mbLeft.BorderSizePixel=0 mbLeft.ZIndex=17 mbLeft.Parent=modeButtonBg
+local mbBot = Instance.new("Frame") mbBot.Size = UDim2.new(1,0,0,1) mbBot.Position = UDim2.new(0,0,1,-1) mbBot.BackgroundColor3 = Color3.fromRGB(128,128,128) mbBot.BorderSizePixel=0 mbBot.ZIndex=17 mbBot.Parent=modeButtonBg
+local mbRight = Instance.new("Frame") mbRight.Size = UDim2.new(0,1,1,0) mbRight.Position = UDim2.new(1,-1,0,0) mbRight.BackgroundColor3 = Color3.fromRGB(128,128,128) mbRight.BorderSizePixel=0 mbRight.ZIndex=17 mbRight.Parent=modeButtonBg
+
+local modeButton = Instance.new("TextButton")
+modeButton.Size = UDim2.new(1, -4, 1, -4)
+modeButton.Position = UDim2.new(0, 2, 0, 2)
+modeButton.BackgroundColor3 = Color3.fromRGB(192, 192, 192)
+modeButton.BorderSizePixel = 0
+modeButton.Font = Enum.Font.Arcade
+modeButton.Text = "Mode: Smooth (1)"
+modeButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+modeButton.TextSize = 12
+modeButton.ZIndex = 18
+modeButton.Parent = modeButtonBg
+
+local aimbotMode = 1 -- 1 = Smooth, 2 = Snappy / Not clearly smooth
+modeButton.MouseButton1Click:Connect(function()
+	if aimbotMode == 1 then
+		aimbotMode = 2
+		modeButton.Text = "Mode: Snappy / Instant (2)"
+	else
+		aimbotMode = 1
+		modeButton.Text = "Mode: Smooth (1)"
+	end
+end)
+
+-- FOV Slider
+local sliderPanel = Instance.new("Frame")
+sliderPanel.Size = UDim2.new(1, -12, 0, 42)
+sliderPanel.Position = UDim2.new(0, 0, 0, 269)
+sliderPanel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+sliderPanel.BorderSizePixel = 0
+sliderPanel.ZIndex = 16
+sliderPanel.Parent = scrollingFrame
+
+local spTop = Instance.new("Frame") spTop.Size = UDim2.new(1,0,0,1) spTop.BackgroundColor3 = Color3.fromRGB(128,128,128) spTop.BorderSizePixel=0 spTop.ZIndex=17 spTop.Parent=sliderPanel
+local spLeft = Instance.new("Frame") spLeft.Size = UDim2.new(0,1,1,0) spLeft.BackgroundColor3 = Color3.fromRGB(128,128,128) spLeft.BorderSizePixel=0 spLeft.ZIndex=17 spLeft.Parent=sliderPanel
+local spBot = Instance.new("Frame") spBot.Size = UDim2.new(1,0,0,1) spBot.Position = UDim2.new(0,0,1,-1) spBot.BackgroundColor3 = Color3.fromRGB(255,255,255) spBot.BorderSizePixel=0 spBot.ZIndex=17 spBot.Parent=sliderPanel
+local spRight = Instance.new("Frame") spRight.Size = UDim2.new(0,1,1,0) spRight.Position = UDim2.new(1,-1,0,0) spRight.BackgroundColor3 = Color3.fromRGB(255,255,255) spRight.BorderSizePixel=0 spRight.ZIndex=17 spRight.Parent=sliderPanel
+
+local fovLabel = Instance.new("TextLabel")
+fovLabel.Size = UDim2.new(1, -16, 0, 16)
+fovLabel.Position = UDim2.new(0, 8, 0, 4)
+fovLabel.BackgroundTransparency = 1
+fovLabel.Font = Enum.Font.Arcade
+fovLabel.Text = "FOV Size: 10"
+fovLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+fovLabel.TextSize = 13
+fovLabel.TextXAlignment = Enum.TextXAlignment.Left
+fovLabel.ZIndex = 18
+fovLabel.Parent = sliderPanel
+
+local sliderTrack = Instance.new("Frame")
+sliderTrack.Size = UDim2.new(1, -16, 0, 6)
+sliderTrack.Position = UDim2.new(0, 8, 0, 26)
+sliderTrack.BackgroundColor3 = Color3.fromRGB(128, 128, 128)
+sliderTrack.BorderSizePixel = 0
+sliderTrack.ZIndex = 18
+sliderTrack.Parent = sliderPanel
+
+local trackHighlight = Instance.new("Frame")
+trackHighlight.Size = UDim2.new(1, 0, 0, 1)
+trackHighlight.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+trackHighlight.BorderSizePixel = 0
+trackHighlight.ZIndex = 19
+trackHighlight.Parent = sliderTrack
+
+local sliderHandle = Instance.new("TextButton")
+sliderHandle.Size = UDim2.new(0, 12, 0, 22)
+sliderHandle.Position = UDim2.new(10/25, -6, 0, -8)
+sliderHandle.BackgroundColor3 = Color3.fromRGB(192, 192, 192)
+sliderHandle.BorderSizePixel = 0
+sliderHandle.Text = ""
+sliderHandle.ZIndex = 20
+sliderHandle.Parent = sliderTrack
+
+local hTop = Instance.new("Frame") hTop.Size = UDim2.new(1,0,0,1) hTop.BackgroundColor3 = Color3.fromRGB(255,255,255) hTop.BorderSizePixel=0 hTop.ZIndex=21 hTop.Parent=sliderHandle
+local hLeft = Instance.new("Frame") hLeft.Size = UDim2.new(0,1,1,0) hLeft.BackgroundColor3 = Color3.fromRGB(255,255,255) hLeft.BorderSizePixel=0 hLeft.ZIndex=21 hLeft.Parent=sliderHandle
+local hBot = Instance.new("Frame") hBot.Size = UDim2.new(1,0,0,1) hBot.Position = UDim2.new(0,0,1,-1) hBot.BackgroundColor3 = Color3.fromRGB(128,128,128) hBot.BorderSizePixel=0 hBot.ZIndex=21 hBot.Parent=sliderHandle
+local hRight = Instance.new("Frame") hRight.Size = UDim2.new(0,1,1,0) hRight.Position = UDim2.new(1,-1,0,0) hRight.BackgroundColor3 = Color3.fromRGB(255,255,255) hRight.BorderSizePixel=0 hRight.ZIndex=21 hRight.Parent=sliderHandle
+
+local fovRadius = 10
+local sliderDragging = false
+sliderHandle.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		sliderDragging = true
+	end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		sliderDragging = false
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if sliderDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		local mousePos = input.Position.X
+		local trackAbsolutePos = sliderTrack.AbsolutePosition.X
+		local trackAbsoluteSize = sliderTrack.AbsoluteSize.X
+		
+		local relativeX = math.clamp(mousePos - trackAbsolutePos, 0, trackAbsoluteSize)
+		local scale = relativeX / trackAbsoluteSize
+		
+		fovRadius = math.floor(scale * 25 + 0.5)
+		if fovRadius < 1 then fovRadius = 1 end
+		
+		sliderHandle.Position = UDim2.new(scale, -6, 0, -8)
+		fovLabel.Text = "FOV Size: " .. tostring(fovRadius)
+	end
+end)
+
+-- FOV Circle Drawing
+local fovCircle = Drawing.new("Circle")
+fovCircle.Thickness = 1
+fovCircle.Color = Color3.fromRGB(255, 255, 255)
+fovCircle.Filled = false
+fovCircle.Transparency = 0.7
+
+-- Robust Wall Check using Raycasting
+local function isVisible(targetPart)
+	if not getWallCheck() then return true end
+	local character = player.Character
+	if not character or not character:FindFirstChild("Head") then return true end
+	
+	local origin = character.Head.Position
+	local direction = targetPart.Position - origin
+	
+	local raycastParams = RaycastParams.new()
+	raycastParams.FilterType = Enum.RaycastFilterType.Blacklist
+	raycastParams.FilterDescendantsInstances = {character, camera}
+	raycastParams.IgnoreWater = true
+	
+	local result = workspace:Raycast(origin, direction, raycastParams)
+	if result then
+		local hit = result.Instance
+		if hit:IsDescendantOf(targetPart.Parent) then
+			return true
+		end
+		return false
+	end
+	return true
+end
+
+-- ESP Drawing Pool Management per player
+local espDrawings = {}
+
+local function createEspDrawings()
+	local drawings = {
+		Box = Drawing.new("Square"),
+		Tracer = Drawing.new("Line"),
+		Name = Drawing.new("Text"),
+		Health = Drawing.new("Text")
+	}
+	
+	drawings.Box.Thickness = 1
+	drawings.Box.Filled = false
+	drawings.Box.Visible = false
+	
+	drawings.Tracer.Thickness = 1
+	drawings.Tracer.Visible = false
+	
+	drawings.Name.Size = 13
+	drawings.Name.Center = true
+	drawings.Name.Outline = true
+	drawings.Name.Visible = false
+	
+	drawings.Health.Size = 12
+	drawings.Health.Center = true
+	drawings.Health.Outline = true
+	drawings.Health.Visible = false
+	
+	return drawings
+end
+
+for _, p in ipairs(Players:GetPlayers()) do
+	if p ~= player then
+		espDrawings[p] = createEspDrawings()
+	end
+end
+
+Players.PlayerAdded:Connect(function(p)
+	if p ~= player then
+		espDrawings[p] = createEspDrawings()
+	end
+end)
+
+Players.PlayerRemoving:Connect(function(p)
+	if espDrawings[p] then
+		for _, drawing in pairs(espDrawings[p]) do
+			drawing:Remove()
+		end
+		espDrawings[p] = nil
+	end
+end)
+
+-- Camera Target Lock with dual modes & Greenfade ESP Loop
+local smoothness = 1.2
+
+RunService.RenderStepped:Connect(function(dt)
+	local aimbotEnabled = getAimbotState()
+	fovCircle.Visible = aimbotEnabled
+	
+	local screenCenter = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y / 2)
+	if aimbotEnabled then
+		fovCircle.Position = screenCenter
+		fovCircle.Radius = fovRadius * 12
+	end
+	
+	local closestTarget = nil
+	local shortestDist = math.huge
+	
+	-- Calculate green fade effect dynamically using tick time
+	local fadeFactor = (math.sin(tick() * 4) + 1) / 2 -- Ranges from 0 to 1 smoothly
+	local greenFadeColor = Color3.fromRGB(0, math.floor(100 + (fadeFactor * 155)), 0)
+	
+	for _, otherPlayer in ipairs(Players:GetPlayers()) do
+		if otherPlayer ~= player then
+			local passTeam = true
+			if getTeamCheck() and otherPlayer.Team and player.Team and otherPlayer.Team == player.Team then
+				passTeam = false
+			end
+			
+			local drawings = espDrawings[otherPlayer]
+			local character = otherPlayer.Character
+			local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+			local rootPart = character and character:FindFirstChild("HumanoidRootPart")
+			local head = character and character:FindFirstChild("Head")
+			
+			local shouldShowEsp = passTeam and character and humanoid and humanoid.Health > 0 and rootPart and head
+			
+			if shouldShowEsp then
+				local vector, onScreen = camera:WorldToViewportPoint(rootPart.Position)
+				if onScreen then
+					local headPos = camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
+					local legPos = camera:WorldToViewportPoint(rootPart.Position - Vector3.new(0, 3, 0))
+					
+					local height = math.abs(headPos.Y - legPos.Y)
+					local width = height / 2
+					local boxPosition = Vector2.new(headPos.X - width / 2, headPos.Y)
+					local boxSize = Vector2.new(width, height)
+					
+					-- ESP Box
+					if getEspBoxState() then
+						drawings.Box.Visible = true
+						drawings.Box.Size = boxSize
+						drawings.Box.Position = boxPosition
+						drawings.Box.Color = greenFadeColor
+					else
+						drawings.Box.Visible = false
+					end
+					
+					-- ESP Tracers
+					if getEspTracerState() then
+						drawings.Tracer.Visible = true
+						drawings.Tracer.From = Vector2.new(camera.ViewportSize.X / 2, camera.ViewportSize.Y)
+						drawings.Tracer.To = Vector2.new(rootPart.Position.X, legPos.Y)
+						drawings.Tracer.Color = greenFadeColor
+					else
+						drawings.Tracer.Visible = false
+					end
+					
+					-- ESP Names
+					if getEspNameState() then
+						drawings.Name.Visible = true
+						drawings.Name.Text = otherPlayer.Name
+						drawings.Name.Position = Vector2.new(headPos.X, headPos.Y - 18)
+						drawings.Name.Color = greenFadeColor
+					else
+						drawings.Name.Visible = false
+					end
+					
+					-- ESP Health
+					if getEspHealthState() then
+						drawings.Health.Visible = true
+						drawings.Health.Text = "HP: " .. math.floor(humanoid.Health)
+						drawings.Health.Position = Vector2.new(boxPosition.X + boxSize.X + 22, boxPosition.Y + (boxSize.Y / 2))
+						drawings.Health.Color = greenFadeColor
+					else
+						drawings.Health.Visible = false
+					end
+				else
+					if drawings then
+						drawings.Box.Visible = false
+						drawings.Tracer.Visible = false
+						drawings.Name.Visible = false
+						drawings.Health.Visible = false
+					end
+				end
+			else
+				if drawings then
+					drawings.Box.Visible = false
+					drawings.Tracer.Visible = false
+					drawings.Name.Visible = false
+					drawings.Health.Visible = false
+				end
+			end
+			
+			-- Aimbot selection logic
+			if aimbotEnabled and passTeam and character then
+				local humanoid = character:FindFirstChildOfClass("Humanoid")
+				local targetPart = head or rootPart
+				
+				if humanoid and humanoid.Health > 0 and targetPart then
+					local screenPos, onScreen = camera:WorldToViewportPoint(targetPart.Position)
+					
+					if onScreen then
+						local screenVector = Vector2.new(screenPos.X, screenPos.Y)
+						local dist = (screenVector - screenCenter).Magnitude
+						
+						if dist <= (fovRadius * 12) and dist < shortestDist then
+							if isVisible(targetPart) then
+								shortestDist = dist
+								closestTarget = targetPart
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	
+	if aimbotEnabled and closestTarget then
+		local targetCFrame = CFrame.new(camera.CFrame.Position, closestTarget.Position)
+		if aimbotMode == 1 then
+			-- Mode 1: Smooth aimbot
+			camera.CFrame = camera.CFrame:Lerp(targetCFrame, math.clamp(dt * smoothness * 5, 0, 1))
+		else
+			-- Mode 2: Original / Snappy (Not clearly smooth)
+			camera.CFrame = targetCFrame
+		end
+	end
+end)
+
+-- 4-Block Windows Flag Floating Container UI
+local floatingContainer = Instance.new("TextButton")
+floatingContainer.Name = "FloatingLogoGrid"
+floatingContainer.Size = UDim2.new(0, 42, 0, 42)
+floatingContainer.Position = UDim2.new(0, 35, 0.5, -21)
+floatingContainer.BackgroundTransparency = 1
+floatingContainer.Text = ""
+floatingContainer.AutoButtonColor = false
+floatingContainer.Visible = false
+floatingContainer.ZIndex = 30
+floatingContainer.Parent = screenGui
+
+local function createWinBlock(position, size, color)
+	local panel = Instance.new("Frame")
+	panel.Size = size
+	panel.Position = position
+	panel.BackgroundColor3 = color
+	panel.BorderSizePixel = 0
+	panel.ZIndex = 31
+	panel.Parent = floatingContainer
+	
+	local gradient = Instance.new("UIGradient")
+	gradient.Transparency = NumberSequence.new({
+		NumberSequenceKeypoint.new(0, 0.2),
+		NumberSequenceKeypoint.new(0.5, 0),
+		NumberSequenceKeypoint.new(1, 0.4)
+	})
+	gradient.Rotation = 35
+	gradient.Parent = panel
+	
+	return panel
+end
+
+createWinBlock(UDim2.new(0, 0, 0, 0), UDim2.new(0, 19, 0, 19), Color3.fromRGB(227, 91, 33))
+createWinBlock(UDim2.new(0, 23, 0, 0), UDim2.new(0, 19, 0, 19), Color3.fromRGB(119, 178, 77))
+createWinBlock(UDim2.new(0, 0, 0, 23), UDim2.new(0, 19, 0, 19), Color3.fromRGB(34, 137, 204))
+createWinBlock(UDim2.new(0, 23, 0, 23), UDim2.new(0, 19, 0, 19), Color3.fromRGB(242, 175, 41))
+
+local windowDragging, windowDragStart, windowStartPos
+titleBar.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		windowDragging = true
+		windowDragStart = input.Position
+		windowStartPos = mainFrame.Position
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then windowDragging = false end
+		end)
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if windowDragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+		local delta = input.Position - windowDragStart
+		mainFrame.Position = UDim2.new(windowStartPos.X.Scale, windowStartPos.X.Offset + delta.X, windowStartPos.Y.Scale, windowStartPos.Y.Offset + delta.Y)
+	end
+end)
+
+local dragging, dragInput, dragStart, startPos
+local isClick = true
+floatingContainer.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		isClick = true
+		dragStart = input.Position
+		startPos = floatingContainer.Position
+		
+		TweenService:Create(floatingContainer, TweenInfo.new(0.2), {Size = UDim2.new(0, 38, 0, 38)}):Play()
+		
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+				TweenService:Create(floatingContainer, TweenInfo.new(0.2), {Size = UDim2.new(0, 42, 0, 42)}):Play()
+			end
+		end)
+	end
+end)
+
+floatingContainer.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		local delta = input.Position - dragStart
+		if math.abs(delta.X) > 5 or math.abs(delta.Y) > 5 then isClick = false end
+		floatingContainer.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+end)
+
+local function minimizeGui()
+	local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	local shrinkTween = TweenService:Create(mainFrame, tweenInfo, {
+		Size = UDim2.new(0, 0, 0, 0),
+		Position = floatingContainer.Position + UDim2.new(0, 21, 0, 21)
+	})
+	shrinkTween:Play()
+	shrinkTween.Completed:Wait()
+	mainFrame.Visible = false
+	floatingContainer.Visible = true
+	fovCircle.Visible = false
+end
+
+local function expandGui()
+	if not isClick then return end
+	floatingContainer.Visible = false
+	mainFrame.Visible = true
+	
+	local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	mainFrame.Size = UDim2.new(0, 0, 0, 0)
+	mainFrame.Position = floatingContainer.Position + UDim2.new(0, 21, 0, 21)
+	
+	local expandTween = TweenService:Create(mainFrame, tweenInfo, {
+		Size = UDim2.new(0, 380, 0, 420),
+		Position = UDim2.new(0.5, -190, 0.5, -210)
+	})
+	expandTween:Play()
+	fovCircle.Visible = getAimbotState()
+end
+
+closeButton.MouseButton1Click:Connect(minimizeGui)
+floatingContainer.MouseButton1Click:Connect(expandGui)
+
+-- Run 10-Second Loading Intro Sequence
+task.spawn(function()
+	local maxTrackWidth = barOuter.AbsoluteSize.X - 6
+	if maxTrackWidth <= 0 then maxTrackWidth = 280 end
+	
+	loadContent.Text = "Loading kernel & modules..."
+	TweenService:Create(barInner, TweenInfo.new(3.0, Enum.EasingStyle.Linear), {Size = UDim2.new(0, maxTrackWidth * 0.35, 1, -6)}):Play()
+	task.wait(3.0)
+	
+	loadContent.Text = "Configuring interface & graphics..."
+	TweenService:Create(barInner, TweenInfo.new(4.0, Enum.EasingStyle.Linear), {Size = UDim2.new(0, maxTrackWidth * 0.80, 1, -6)}):Play()
+	task.wait(4.0)
+	
+	loadContent.Text = "System ready. Welcome!"
+	TweenService:Create(barInner, TweenInfo.new(3.0, Enum.EasingStyle.Linear), {Size = UDim2.new(0, maxTrackWidth, 1, -6)}):Play()
+	task.wait(3.0)
+	
+	loadingFrame:Destroy()
+	mainFrame.Visible = true
+end)
